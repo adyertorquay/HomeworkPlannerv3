@@ -11,10 +11,22 @@ import { generateICS } from './export/icsExport.js'
 
 function App() {
   const [adhocTasks, setAdhocTasks] = useState(() => load('adhocTasks', []))
-  const [availabilityMap, setAvailabilityMap] = useState(() => load('availabilityMap', {
-    '1-18': true, '2-18': true, '3-18': true, '4-18': true, '5-18': true,
-    '1-19': true, '2-19': true, '3-19': true, '4-19': true, '5-19': true
-  }))
+
+  // ✅ Default availability: Mon–Fri (16:00–20:00), Sat–Sun (10:00–20:00)
+  const [availabilityMap, setAvailabilityMap] = useState(() =>
+    load('availabilityMap', {
+      '1-16': true, '1-17': true, '1-18': true, '1-19': true, '1-20': true,
+      '2-16': true, '2-17': true, '2-18': true, '2-19': true, '2-20': true,
+      '3-16': true, '3-17': true, '3-18': true, '3-19': true, '3-20': true,
+      '4-16': true, '4-17': true, '4-18': true, '4-19': true, '4-20': true,
+      '5-16': true, '5-17': true, '5-18': true, '5-19': true, '5-20': true,
+      '6-10': true, '6-11': true, '6-12': true, '6-13': true, '6-14': true,
+      '6-15': true, '6-16': true, '6-17': true, '6-18': true, '6-19': true, '6-20': true,
+      '7-10': true, '7-11': true, '7-12': true, '7-13': true, '7-14': true,
+      '7-15': true, '7-16': true, '7-17': true, '7-18': true, '7-19': true, '7-20': true,
+    })
+  )
+
   const [currentWeekBase, setCurrentWeekBase] = useState(new Date())
 
   useEffect(() => { save('adhocTasks', adhocTasks) }, [adhocTasks])
@@ -40,10 +52,13 @@ function App() {
 
   const allTasks = useMemo(() => [...weeklyTasksWithDates, ...adhocTasks], [weeklyTasksWithDates, adhocTasks])
 
-  const availabilityBlocks = useMemo(() => availabilityToBlocks(availabilityMap, currentWeekBase), [availabilityMap, currentWeekBase])
+  const availabilityBlocks = useMemo(
+    () => availabilityToBlocks(availabilityMap, currentWeekBase),
+    [availabilityMap, currentWeekBase]
+  )
 
   const { sessions, unscheduled } = useMemo(
-    () => scheduleTasks(allTasks, availabilityBlocks.map(b => ({...b}))),
+    () => scheduleTasks(allTasks, availabilityBlocks.map(b => ({ ...b }))),
     [allTasks, availabilityBlocks]
   )
 
@@ -69,7 +84,9 @@ function App() {
     <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-4">
       <header className="no-print">
         <h1 className="text-2xl md:text-3xl font-bold">Homework Planner</h1>
-        <p className="text-slate-600">Auto-schedules your weekly homework (Sparx, Tassomai, Reader, Mastery) and any subject-specific tasks into the time you’re free.</p>
+        <p className="text-slate-600">
+          Auto-schedules your weekly homework (Sparx, Tassomai, Reader, Mastery) and any subject-specific tasks into the time you’re free.
+        </p>
       </header>
 
       <div className="grid md:grid-cols-3 gap-4 no-print">
@@ -77,8 +94,18 @@ function App() {
           <TaskForm onAdd={addTask} />
           <AvailabilityPicker availabilityMap={availabilityMap} onToggle={toggleAvailability} />
           <div className="flex gap-2">
-            <button onClick={downloadICS} className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700">Export .ics</button>
-            <button onClick={()=>window.print()} className="px-4 py-2 rounded-xl bg-slate-700 text-white hover:bg-slate-800">Print / PDF</button>
+            <button
+              onClick={downloadICS}
+              className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Export .ics
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="px-4 py-2 rounded-xl bg-slate-700 text-white hover:bg-slate-800"
+            >
+              Print / PDF
+            </button>
           </div>
         </div>
         <div>
@@ -88,7 +115,9 @@ function App() {
               <div className="font-medium mb-1">Unscheduled (not enough free time)</div>
               <ul className="text-sm list-disc pl-5 space-y-1">
                 {unscheduled.map(u => (
-                  <li key={u.id}>{u.title} — {u.minutesLeft} mins left (due {new Date(u.dueAt).toLocaleString()})</li>
+                  <li key={u.id}>
+                    {u.title} — {u.minutesLeft} mins left (due {new Date(u.dueAt).toLocaleString()})
+                  </li>
                 ))}
               </ul>
               <p className="text-xs mt-1">Tip: add more availability or reduce estimates.</p>
@@ -109,9 +138,9 @@ function App() {
 function weekKey(d) {
   const y = d.getFullYear()
   const start = new Date(d)
-  start.setDate(d.getDate() - ((d.getDay()+6)%7)) // Monday start
-  const m = String(start.getMonth()+1).padStart(2,'0')
-  const day = String(start.getDate()).padStart(2,'0')
+  start.setDate(d.getDate() - ((d.getDay() + 6) % 7)) // Monday start
+  const m = String(start.getMonth() + 1).padStart(2, '0')
+  const day = String(start.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
 }
 
