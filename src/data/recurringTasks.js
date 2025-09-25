@@ -56,7 +56,6 @@ export const WEEKLY_TASKS = [
   }
 ]
 
-// Simple subject colours for calendar styling
 export const SUBJECT_COLOURS = {
   Maths: '#2563eb',
   Science: '#16a34a',
