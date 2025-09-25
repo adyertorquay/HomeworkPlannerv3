@@ -2,7 +2,18 @@ import React from 'react'
 import { addHours, startOfWeek, set, addDays } from 'date-fns'
 import clsx from 'clsx'
 
-const HOURS = Array.from({ length: 14 }, (_, i) => i + 7) // 07:00–20:00
+// Define per-day available hours
+function getAvailableHours(dayIndex) {
+  if (dayIndex >= 0 && dayIndex <= 4) {
+    // Mon–Fri: before school (6–8) and after school (15–21)
+    return [...Array(3).keys()].map(h => h + 6)  // 6,7,8
+      .concat([...Array(6).keys()].map(h => h + 15)) // 15,16,17,18,19,20
+  } else {
+    // Sat–Sun: 9–21
+    return [...Array(13).keys()].map(h => h + 9) // 9–21
+  }
+}
+
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 
 export default function AvailabilityPicker({ availabilityMap, onToggle }) {
@@ -18,10 +29,13 @@ export default function AvailabilityPicker({ availabilityMap, onToggle }) {
             </tr>
           </thead>
           <tbody>
-            {HOURS.map(h => (
+            {/* Collect all unique hours across the week */}
+            {[...new Set(DAYS.flatMap((_,i)=>getAvailableHours(i)))].sort((a,b)=>a-b).map(h => (
               <tr key={h}>
                 <td className="text-xs text-slate-500 px-2 w-16">{String(h).padStart(2,'0')}:00</td>
                 {DAYS.map((d, idx) => {
+                  const hours = getAvailableHours(idx)
+                  if (!hours.includes(h)) return <td key={idx} className="px-2"></td>
                   const key = `${idx+1}-${h}`
                   const active = !!availabilityMap[key]
                   return (
@@ -44,18 +58,17 @@ export default function AvailabilityPicker({ availabilityMap, onToggle }) {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-slate-500 mt-2">Click cells to mark when you’re free. Sessions will be scheduled into these blocks.</p>
+      <p className="text-xs text-slate-500 mt-2">Only before school, after school, and weekend times are available.</p>
     </div>
   )
 }
 
-// ✅ Exported so App.jsx can import it
 export function availabilityToBlocks(availabilityMap, baseDate = new Date()) {
   const weekStart = startOfWeek(baseDate, { weekStartsOn: 1 })
   const blocks = []
   for (const key of Object.keys(availabilityMap)) {
     if (!availabilityMap[key]) continue
-    const [weekday, hour] = key.split('-').map(Number) // 1..7, 7..20
+    const [weekday, hour] = key.split('-').map(Number)
     const day = addDays(weekStart, weekday - 1)
     const start = set(day, { hours: hour, minutes: 0, seconds: 0, milliseconds: 0 })
     const end = addHours(start, 1)
