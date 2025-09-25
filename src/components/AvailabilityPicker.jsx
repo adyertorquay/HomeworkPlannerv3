@@ -2,21 +2,18 @@ import React from 'react'
 import { addHours, startOfWeek, set, addDays } from 'date-fns'
 import clsx from 'clsx'
 
-// Define per-day available hours
 function getAvailableHours(dayIndex) {
   if (dayIndex >= 0 && dayIndex <= 4) {
-    // Mon–Fri: before school (6–8) and after school (15–21)
-    return [...Array(3).keys()].map(h => h + 6)  // 6,7,8
-      .concat([...Array(6).keys()].map(h => h + 15)) // 15–20
+    return [6,7,8,15,16,17,18,19,20]
   } else {
-    // Sat–Sun: 9–21
-    return [...Array(13).keys()].map(h => h + 9) // 9–21
+    return [9,10,11,12,13,14,15,16,17,18,19,20]
   }
 }
 
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 
 export default function AvailabilityPicker({ availabilityMap, onToggle }) {
+  const allHours = [...new Set(DAYS.flatMap((_,i)=>getAvailableHours(i)))].sort((a,b)=>a-b)
   return (
     <div className="bg-white rounded-2xl shadow p-4">
       <h3 className="text-lg font-semibold mb-2">Select your available times</h3>
@@ -29,17 +26,16 @@ export default function AvailabilityPicker({ availabilityMap, onToggle }) {
             </tr>
           </thead>
           <tbody>
-            {/* Collect all unique hours across the week */}
-            {[...new Set(DAYS.flatMap((_,i)=>getAvailableHours(i)))].sort((a,b)=>a-b).map(h => (
+            {allHours.map(h => (
               <tr key={h}>
                 <td className="text-xs text-slate-500 px-2 w-16">{String(h).padStart(2,'0')}:00</td>
-                {DAYS.map((d, idx) => {
+                {DAYS.map((_, idx) => {
                   const hours = getAvailableHours(idx)
                   if (!hours.includes(h)) return <td key={idx} className="px-2"></td>
                   const key = `${idx+1}-${h}`
                   const active = !!availabilityMap[key]
                   return (
-                    <td key={key} className="px-2">
+                    <td key={idx} className="px-2">
                       <button
                         className={clsx(
                           'w-20 h-8 rounded-lg border text-xs',
