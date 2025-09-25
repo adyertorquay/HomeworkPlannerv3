@@ -7,7 +7,7 @@ function getAvailableHours(dayIndex) {
   if (dayIndex >= 0 && dayIndex <= 4) {
     // Mon–Fri: before school (6–8) and after school (15–21)
     return [...Array(3).keys()].map(h => h + 6)  // 6,7,8
-      .concat([...Array(6).keys()].map(h => h + 15)) // 15,16,17,18,19,20
+      .concat([...Array(6).keys()].map(h => h + 15)) // 15–20
   } else {
     // Sat–Sun: 9–21
     return [...Array(13).keys()].map(h => h + 9) // 9–21
@@ -19,7 +19,7 @@ const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 export default function AvailabilityPicker({ availabilityMap, onToggle }) {
   return (
     <div className="bg-white rounded-2xl shadow p-4">
-      <h3 className="text-lg font-semibold mb-2">Your availability</h3>
+      <h3 className="text-lg font-semibold mb-2">Select your available times</h3>
       <div className="overflow-x-auto">
         <table className="min-w-full border-separate border-spacing-1">
           <thead>
@@ -43,12 +43,14 @@ export default function AvailabilityPicker({ availabilityMap, onToggle }) {
                       <button
                         className={clsx(
                           'w-20 h-8 rounded-lg border text-xs',
-                          active ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                          active
+                            ? 'bg-emerald-500 text-white border-emerald-600'
+                            : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
                         )}
                         onClick={() => onToggle(idx+1, h)}
                         aria-pressed={active}
                       >
-                        {active ? 'Free' : 'Busy'}
+                        {active ? 'Available' : 'Not set'}
                       </button>
                     </td>
                   )
@@ -58,7 +60,9 @@ export default function AvailabilityPicker({ availabilityMap, onToggle }) {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-slate-500 mt-2">Only before school, after school, and weekend times are available.</p>
+      <p className="text-xs text-slate-500 mt-2">
+        Click on the times you’re free to do homework. Only those slots will be used in your plan.
+      </p>
     </div>
   )
 }
