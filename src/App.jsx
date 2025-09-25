@@ -11,22 +11,7 @@ import { generateICS } from './export/icsExport.js'
 
 function App() {
   const [adhocTasks, setAdhocTasks] = useState(() => load('adhocTasks', []))
-
-  // ✅ Default availability: Mon–Fri (16:00–20:00), Sat–Sun (10:00–20:00)
-  const [availabilityMap, setAvailabilityMap] = useState(() =>
-    load('availabilityMap', {
-      '1-16': true, '1-17': true, '1-18': true, '1-19': true, '1-20': true,
-      '2-16': true, '2-17': true, '2-18': true, '2-19': true, '2-20': true,
-      '3-16': true, '3-17': true, '3-18': true, '3-19': true, '3-20': true,
-      '4-16': true, '4-17': true, '4-18': true, '4-19': true, '4-20': true,
-      '5-16': true, '5-17': true, '5-18': true, '5-19': true, '5-20': true,
-      '6-10': true, '6-11': true, '6-12': true, '6-13': true, '6-14': true,
-      '6-15': true, '6-16': true, '6-17': true, '6-18': true, '6-19': true, '6-20': true,
-      '7-10': true, '7-11': true, '7-12': true, '7-13': true, '7-14': true,
-      '7-15': true, '7-16': true, '7-17': true, '7-18': true, '7-19': true, '7-20': true,
-    })
-  )
-
+  const [availabilityMap, setAvailabilityMap] = useState(() => load('availabilityMap', {}))
   const [currentWeekBase, setCurrentWeekBase] = useState(new Date())
 
   useEffect(() => { save('adhocTasks', adhocTasks) }, [adhocTasks])
@@ -37,7 +22,6 @@ function App() {
     setAvailabilityMap(m => ({ ...m, [key]: !m[key] }))
   }
 
-  // Build weekly fixed tasks with real dates
   const weeklyTasksWithDates = useMemo(() => {
     return WEEKLY_TASKS.map(t => ({
       id: `${t.id}-${weekKey(currentWeekBase)}`,
@@ -51,16 +35,8 @@ function App() {
   }, [currentWeekBase])
 
   const allTasks = useMemo(() => [...weeklyTasksWithDates, ...adhocTasks], [weeklyTasksWithDates, adhocTasks])
-
-  const availabilityBlocks = useMemo(
-    () => availabilityToBlocks(availabilityMap, currentWeekBase),
-    [availabilityMap, currentWeekBase]
-  )
-
-  const { sessions, unscheduled } = useMemo(
-    () => scheduleTasks(allTasks, availabilityBlocks.map(b => ({ ...b }))),
-    [allTasks, availabilityBlocks]
-  )
+  const availabilityBlocks = useMemo(() => availabilityToBlocks(availabilityMap, currentWeekBase), [availabilityMap, currentWeekBase])
+  const { sessions, unscheduled } = useMemo(() => scheduleTasks(allTasks, availabilityBlocks.map(b => ({ ...b }))), [allTasks, availabilityBlocks])
 
   function addTask(t) { setAdhocTasks(a => [...a, t]) }
   function deleteTask(id) { setAdhocTasks(a => a.filter(x => x.id !== id)) }
@@ -85,7 +61,7 @@ function App() {
       <header className="no-print">
         <h1 className="text-2xl md:text-3xl font-bold">Homework Planner</h1>
         <p className="text-slate-600">
-          Auto-schedules your weekly homework (Sparx, Tassomai, Reader, Mastery) and any subject-specific tasks into the time you’re free.
+          Select your availability, add homework, and auto-schedule into free time.
         </p>
       </header>
 
@@ -129,7 +105,7 @@ function App() {
       <CalendarView sessions={sessions} deadlines={allTasks} />
 
       <footer className="text-center text-xs text-slate-500 py-4 no-print">
-        Built for Torquay Academy • Weekly fixed tasks: Monday Mastery, Tuesday Sparx Maths/Science, Thursday Sparx Reader & Tassomai.
+        Built for Torquay Academy • Homework Planner
       </footer>
     </div>
   )
@@ -138,7 +114,7 @@ function App() {
 function weekKey(d) {
   const y = d.getFullYear()
   const start = new Date(d)
-  start.setDate(d.getDate() - ((d.getDay() + 6) % 7)) // Monday start
+  start.setDate(d.getDate() - ((d.getDay() + 6) % 7))
   const m = String(start.getMonth() + 1).padStart(2, '0')
   const day = String(start.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
